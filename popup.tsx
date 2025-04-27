@@ -1,26 +1,38 @@
 import { useState } from "react"
 
-function IndexPopup() {
-  const [data, setData] = useState("")
+export default function Popup() {
+  const [status, setStatus] = useState<string | null>(null)
+
+  const startSelecting = async () => {
+    setStatus("Click any element to copy…")
+
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true
+    })
+    if (!tab?.id) {
+      setStatus("No active tab")
+      return
+    }
+
+    // fire off selection mode in content script
+    chrome.tabs.sendMessage(tab.id, { type: "startSelect" })
+  }
 
   return (
-    <div
-      style={{
-        padding: 16
-      }}>
-      <h2>
-        Welcome to your{" "}
-        <a href="https://www.plasmo.com" target="_blank">
-          Plasmo
-        </a>{" "}
-        Extension!
-      </h2>
-      <input onChange={(e) => setData(e.target.value)} value={data} />
-      <a href="https://docs.plasmo.com" target="_blank">
-        View Docs
-      </a>
+    <div style={{ width: 280, padding: 16, fontFamily: "sans-serif" }}>
+      <h4>SnapClip</h4>
+      <button
+        onClick={startSelecting}
+        style={{ width: "100%", padding: "8px", fontSize: "14px" }}
+      >
+        Select &amp; Copy
+      </button>
+      {status && (
+        <p style={{ marginTop: 12, fontSize: "13px", color: "#555" }}>
+          {status}
+        </p>
+      )}
     </div>
   )
 }
-
-export default IndexPopup
